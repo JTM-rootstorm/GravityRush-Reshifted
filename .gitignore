@@ -1,0 +1,27 @@
+# Build trees
+out/
+build/
+
+# Lifter output (regenerated from the eboot and PRXs)
+generated/
+
+# Derived from the game binaries (a Ghidra export)
+symbols/
+
+# Ghidra project (contains the game's code)
+*.gpr
+*.rep/
+*.lock
+*.lock~
+
+# Logs
+*.log
+
+# Never commit game files
+*.bin
+*.prx
+*.sprx
+*.elf
+*.self
+*.psarc
+param.sfo
