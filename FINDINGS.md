@@ -30,9 +30,22 @@
   - and stops at sceVideoOutOpen: the display, and with it the GPU path
     (VideoOut, then GnmDriver's command buffers), are next.
 
+- 2026-10-25: past the display and into the sound engine's start-up:
+  - VideoOut: opens the main port and registers three 1920x1080
+    A8R8G8B8 (sRGB) buffers, tiled (tiling mode 0), flip rate 60 Hz, a
+    flip event on an event queue;
+  - starts its job threads, lists a directory of /app0, initialises
+    PlayGo and reads its data through Fios2, which asks libSceDiscMap
+    where each read lies (sce_discmap.plt: 308 entries, 32 MiB blocks,
+    all 18 files of /app0);
+  - creates fibers;
+  - stops at libSceNgs2!sceNgs2SystemCreateWithAllocator (the sound
+    engine "sndx", built 2015-01-09, has loaded NGS2).
+
 ## Next
-- VideoOut and GnmDriver: the design of the PS4's GPU front end on
-  gfx::Device (the platform module's own, ARCHITECTURE.md in x86recomp,
-  "Console platforms").
+- libSceNgs2 (sound), then the rest of the start-up's libraries as the
+  run reaches them.
+- The GPU front end on gfx::Device (draws, GCN shaders, tiled surfaces:
+  the display buffers are tiled).
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
