@@ -23,7 +23,7 @@ recomp_add_lifted(grr_lifted "${CMAKE_CURRENT_SOURCE_DIR}/generated")
 if(TARGET grr_lifted)
   add_executable(grr src/main.cpp $<TARGET_OBJECTS:grr_lifted>)
   target_link_libraries(grr PRIVATE recomp_orbis recomp_orbis_kernel recomp_orbis_libc_internal
-                        recomp_orbis_system recomp_orbis_fiber recomp_orbis_audio recomp_orbis_font recomp_orbis_net recomp_orbis_np recomp_orbis_pad recomp_orbis_savedata recomp_orbis_videoout
+                        recomp_orbis_system recomp_orbis_fiber recomp_orbis_audio recomp_orbis_avplayer recomp_orbis_font recomp_orbis_net recomp_orbis_np recomp_orbis_pad recomp_orbis_savedata recomp_orbis_videoout
                         recomp_orbis_gnm)
   set_target_properties(grr PROPERTIES ENABLE_EXPORTS ON)  # symbol names in fault backtraces
 endif()
