@@ -42,9 +42,21 @@
   - stops at libSceNgs2!sceNgs2SystemCreateWithAllocator (the sound
     engine "sndx", built 2015-01-09, has loaded NGS2).
 
+- 2026-10-25 (later): through the sound engine's start-up (NGS2:
+  mastering, submixer, a 256-voice sampler and a reverb rack; 48 kHz,
+  256-sample grains), PSN (signed out: "WebAPI: User is not signed
+  in."), networking (no connection), save data, fonts, the pad and
+  trophies into the title flow: "TITLE: EULA OK", "savedata check",
+  then the attract movie mp4/ep00-01c.mp4 through AvPlayer (16 s,
+  "DEMO BEGIN" to "DEMO END"), and runs its frame loop (GPU
+  submissions with draws and compute dispatches, flips at 60 Hz,
+  audio out). NGS2 is answered by a local, uncommitted probe that logs
+  the game's use and renders silence, until its HLE exists.
+
 ## Next
-- libSceNgs2 (sound), then the rest of the start-up's libraries as the
-  run reaches them.
+- libSceNgs2 (sound): the HLE, on what the probe showed.
+- libSceFont: port libSceFontFt's glue around FreeType exactly (its
+  load flags, fixed-point scaling, emboldening and placement).
 - The GPU front end on gfx::Device (draws, GCN shaders, tiled surfaces:
   the display buffers are tiled).
 - Values the HLE reports that are not measured on the console yet:
