@@ -53,8 +53,28 @@
   audio out). NGS2 is answered by a local, uncommitted probe that logs
   the game's use and renders silence, until its HLE exists.
 
+- 2026-10-25 (night): sound through the NGS2 HLE. The game's use, from
+  the probe:
+  - racks: mastering (2 voices, 8 channels), submixer (1 voice, 8
+    channels in and out), reverb (1 voice, 8 in / 8 out, I3DL2: room
+    -100, room HF -1000, decay 3.5 s at HF ratio 0.83, reflections -2602
+    after 7 ms, reverb +350 after 20 ms, HF reference 3700 Hz; wet
+    only), a 256-voice sampler (16 waveform blocks, 4 envelope points, 8
+    filters);
+  - graph: sampler voices -> submixer -> mastering voice 0; reverb ->
+    submixer; mastering gain 0.5, limiter at 1.0;
+  - sampler voices: one-shot 24-bit PCM, stereo, 48 kHz (one block of
+    dataSize/6 frames, then a terminating block call), no envelope
+    points, filter off, pitch 1.0, per-voice matrix levels; the game
+    reads each voice's 0x30-byte state;
+  - SystemRender into 10 float buffers of 256 frames: 8 channels, 4
+    mono, 4 stereo, 8 channels; the main mix is buffer 0.
+  A 75 s run on lavapipe (no GPU): no fatal error; buffer 0 carries the
+  title's sound (2 to 9 sampler voices, fading in from silence, peaks
+  near -26 dBFS); the other buffers stay silent. The loudness is not
+  checked against the console yet.
+
 ## Next
-- libSceNgs2 (sound): the HLE, on what the probe showed.
 - libSceFont: port libSceFontFt's glue around FreeType exactly (its
   load flags, fixed-point scaling, emboldening and placement).
 - The GPU front end on gfx::Device (draws, GCN shaders, tiled surfaces:
