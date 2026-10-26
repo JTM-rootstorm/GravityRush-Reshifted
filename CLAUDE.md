@@ -34,7 +34,7 @@ specific to this game. It is the first PS4 user of x86recomp
   It lifts the eboot and the PRXs it loads at start; their bases there
   and in src/main.cpp must agree. generated/lift_report.txt lists
   unimplemented instructions and warnings.
-- Run: `out/build/release/grr --game-dir <app0>`. GRR_TRACE=1 logs
+- Run: `out/build/release/bin/grr --game-dir <app0>`. GRR_TRACE=1 logs
   every HLE call; GRR_NID_NAMES=<names file> names unimplemented imports
   by name instead of NID; GRR_BACKGROUND=1 for automated runs, which go
   inside a memory cap:
