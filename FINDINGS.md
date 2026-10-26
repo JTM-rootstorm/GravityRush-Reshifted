@@ -74,9 +74,16 @@
   near -26 dBFS); the other buffers stay silent. The loudness is not
   checked against the console yet.
 
+- 2026-10-26: fonts follow libSceFontFt 11.00's use of FreeType
+  (x86recomp platforms/orbis/docs/hle.md). The game opens 11 fonts from
+  memory: 5 CFF OpenType fonts kerned only by GPOS, 2 TrueType fonts
+  with 'kern' tables, the rest (CJK, Korean, its own symbols) without
+  kerning; it renders at 48 px into 1-byte surfaces (512x128, 128x256).
+  Its renderer edition (SDK 2.00.121) and compiled SDK (0x02000071) put
+  glyphs a row lower (libSceFont 11.00 does so for SDKs 0.93 to 2.50).
+  No effects (weight, slant) used.
+
 ## Next
-- libSceFont: port libSceFontFt's glue around FreeType exactly (its
-  load flags, fixed-point scaling, emboldening and placement).
 - The GPU front end on gfx::Device (draws, GCN shaders, tiled surfaces:
   the display buffers are tiled).
 - Values the HLE reports that are not measured on the console yet:
