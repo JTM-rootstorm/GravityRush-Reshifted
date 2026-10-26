@@ -83,8 +83,27 @@
   glyphs a row lower (libSceFont 11.00 does so for SDKs 0.93 to 2.50).
   No effects (weight, slant) used.
 
+- 2026-10-26 (later): the GPU draws (x86recomp orbis/gpu). The game's
+  shaders: 89 (31 VS, 51 PS, 3 CS, 2 ES + 2 GS), 96 distinct GCN
+  opcodes; every VS/PS/CS variant translates but one PS using
+  ds_swizzle_b32. Draws: DRAW_INDEX_OFFSET_2 and DRAW_INDEX_AUTO, triangle
+  lists and strips, many depth-only (shadow) passes; colour targets
+  RGBA16F, RGB10A2, RGBA8 (sRGB too), R32F, R8; one compute dispatch of
+  262144 groups of 64. Textures are mostly tile mode 13 (1D thin, BC1/BC3
+  and RGBA8, mip chains), some 14 (2D thin) and one 0 (depth). It submits
+  with sceGnmSubmitCommandBuffers and flips from the CPU after waiting
+  for the previous flip, so a lagging GPU let it reuse command memory
+  (fixed: CPU-side flips wait for the GPU). It relies on CLEAR_STATE for
+  its scissors and uses OpenGL clip space (PA_CL_CLIP_CNTL 0).
+  A 170 s run on lavapipe: the logos, the attract movie's scene and the
+  title prompt ("Press X to tap the Apple") draw; the 3D scene is
+  framed wrongly (borders, offset) and 2D-tiled textures are scrambled.
+  An intermittent host fault inside lavapipe (a memcpy past a mapping)
+  is not understood yet.
+
 ## Next
-- The GPU front end on gfx::Device (draws, GCN shaders, tiled surfaces:
-  the display buffers are tiled).
+- The GPU: 2D-tiled textures (need the console's tile mode table),
+  ds_swizzle, compute image stores, the scene's framing, the lavapipe
+  fault.
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
