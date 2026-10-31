@@ -119,38 +119,45 @@
   one at 0x145720000 is not a target the renderer tracks) remain.
   One of three runs stopped after "TITLE: first" with the loading
   spinner turning (the movie never initialised); see below.
-- 2026-10-31: the stop after "TITLE: first" (1 run in roughly 6 to 40,
-  GPU-free; never with GRR_TRACE=1 from the start, which slows it).
-  What is known:
-  - Nothing is blocked in the HLE: the render thread flips every frame
-    (flip event, equeue), the main loop runs (its frame semaphore), the
-    job workers and libSceFios2's threads idle. The title waits on
-    script work that never starts: in a good run, right after "TITLE:
-    first" the main thread makes a fiber (entry 0x401370) for the fiber
-    worker and libSceFios2 starts ~800 preads; in a stopped run the fiber
-    worker sleeps and no read is issued.
-  - The game's fiber job system (0x400D90-0x4019xx): sub_400F50 queues a
-    fiber on a worker's list and signals its semaphore only when the
-    list was empty; the worker (sub_4011A0) swaps lists under a mutex and
-    runs each (sceFiberRun), finalizing those that return 0. Script
-    fibers switch among themselves in a ring (sceFiberSwitch). In the
-    stopped runs the ring stops early (32 switches against 170-230 in
-    good runs) and the newly made title fibers are never switched to.
-  - Fibers run on two worker threads and move between them; the HLE
-    used to resume a moved fiber with the first thread's registers
-    (fixed in x86recomp, with fs read per use in x64 lifted code). The
-    stop still happens after the fix (1 in 42 runs), so the cause is
-    elsewhere: likely in how the game's script scheduler decides which
-    fiber runs next.
-  - A stopped run is caught by a watcher (no "movie initialize start"
-    90 s after "TITLE: first"); tracing switched on only then shows the
-    main loop's per-frame calls, nothing unusual.
+- 2026-10-31: the stop after "TITLE: first". Was about 1 run in 15
+  (GPU-free); after the fiber fixes below, 1 stop in about 135 runs.
+  Any tracing (GRR_TRACE, libSceFios2's own trace, printed fiber or
+  condition-variable logs) hides it; silent in-memory records dumped
+  once a stop is detected do not.
+  - Nothing is blocked in the HLE: flips, the main loop's frame
+    semaphore and every waiter on libSceFios2's condition variables are
+    as they should be. At a stop each Fios2 waiter's last wait follows
+    the last broadcast (no wakeup lost in the HLE).
+  - The game's fiber job system (0x400D90-0x4019xx): two workers (index
+    0 and 1), each with a double-buffered list, a semaphore and a cursor
+    (table at 0x21788E0). sub_400F50(task, k) queues on worker k and
+    signals only when its list was empty; sub_400FD0(k) yields by
+    switching to the next fiber in worker k's list, or back to the
+    thread after the last. Waits re-queue themselves; async file reads
+    (sub_405510, sub_4050A0, via sub_5FCFC0 / sub_5FCEE0) are re-queued
+    by the libSceFios2 completion callback (sub_405240). The worker
+    takes a failed sceFiberRun for a finished fiber and finalizes it.
+  - Fibers move between the two worker threads. Fixed in x86recomp: a
+    moved fiber used the first thread's registers and TLS (crash or
+    corruption), and a fiber still switching away was refused as
+    running, which made the worker drop it (seen in passing runs).
+  - The remaining stop: two reads of arc0/lua/Game/Param/Init.lua are
+    accepted by libSceFios2 and get their chunks (root linked under
+    chunk 0), then nothing is scheduled; the scheduler woke at the last
+    broadcast, found nothing eligible and slept. The fiber waiting for
+    the read never resumes, nor do the title's script fibers.
+  - Next lead: a silent post-mortem of libSceFios2's state at a stop
+    (scheduler list at 0x800064808: queue at +208, count +16600,
+    executing +16656; chunk table at [0x80004C408], 16 bytes a chunk;
+    suspend count 0x800059808). The dump code was written; no stop came
+    in 75 runs with it. A suspect of its own: lock-free hand-offs in
+    lifted code are plain loads and stores the C++ compiler may reorder
+    (x86recomp ARCHITECTURE.md, "Memory ordering", still open).
 
 ## Next
 - The GPU: ds_swizzle, the scene's framing, the 1920x1080 R8 texture's
   writer, the lavapipe fault.
-- The intermittent stop after "TITLE: first": the game's script
-  scheduler (which fiber the ring switches to), from a stopped run's
-  fiber log.
+- The rare stop after "TITLE: first": libSceFios2's scheduler state at
+  a stop (see above).
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
