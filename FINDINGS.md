@@ -120,7 +120,9 @@
   One of three runs stopped after "TITLE: first" with the loading
   spinner turning (the movie never initialised); see below.
 - 2026-10-31: the stop after "TITLE: first". Was about 1 run in 15
-  (GPU-free); after the fiber fixes below, 1 stop in about 135 runs.
+  (GPU-free); after the fiber fixes below, 1 stop in about 135 runs
+  (about 1 in 50 with four runs at once); after the libSceFios2 fix
+  below, none in 600 runs (four at once).
   Any tracing (GRR_TRACE, libSceFios2's own trace, printed fiber or
   condition-variable logs) hides it; silent in-memory records dumped
   once a stop is detected do not.
@@ -141,23 +143,41 @@
     moved fiber used the first thread's registers and TLS (crash or
     corruption), and a fiber still switching away was refused as
     running, which made the worker drop it (seen in passing runs).
-  - The remaining stop: two reads of arc0/lua/Game/Param/Init.lua are
-    accepted by libSceFios2 and get their chunks (root linked under
-    chunk 0), then nothing is scheduled; the scheduler woke at the last
-    broadcast, found nothing eligible and slept. The fiber waiting for
-    the read never resumes, nor do the title's script fibers.
-  - Next lead: a silent post-mortem of libSceFios2's state at a stop
-    (scheduler list at 0x800064808: queue at +208, count +16600,
-    executing +16656; chunk table at [0x80004C408], 16 bytes a chunk;
-    suspend count 0x800059808). The dump code was written; no stop came
-    in 75 runs with it. A suspect of its own: lock-free hand-offs in
-    lifted code are plain loads and stores the C++ compiler may reorder
-    (x86recomp ARCHITECTURE.md, "Memory ordering", still open).
+  - The remaining stop was a race in libSceFios2 itself, fixed by
+    src/fios2_kick.cpp (replacements of its three scheduler kicks, whose
+    comment has the mechanism). A kick (an I/O completion, a psarc
+    buffer release, a resume) does nothing to a scheduler with an empty
+    queue, and the queue is empty while its only chunk is executed with
+    the scheduler's mutex dropped. A chunk that answered busy there
+    (data not read yet, no free psarc buffer) and whose kick came in
+    that window stayed skipped: every later chunk on that scheduler
+    waited for good. Seen both ways: a read run at once on the caller's
+    thread found the psarc pool full while a release came (32-43 reads
+    queued on one scheduler, the pool showing a free buffer), and a
+    decompression on the default scheduler found its data unread while
+    the read's completion came (its 105 chunks skipped). A fix of the
+    buffer-release kick alone still stopped (in run 13).
+  - How it was caught: four GPU-free runs at once stop about once in 50.
+    A watcher process (the game's ancestor, so ptrace scope 1 lets it
+    read /proc/PID/mem) waits until libSceFios2's scheduler counters
+    stay unchanged for 10 s after "TITLE: first", then dumps the
+    arena's non-zero pages and scans each thread's stack for return
+    addresses (libgrr_lifted.so keeps its symbols). Nothing in the game
+    changes. A silent event ring in the lifted allocator (0x17E00),
+    kicks, AddToSchedule (0x29BA0), ExecuteChunk (0x2A3E0) and
+    NextEligible (0x2BD30) then showed the interleaving.
+  - libSceFios2 layout (at its 0x800000000 base): scheduler list head
+    0x800064808 (next +8; mutex +0x10, condition +0x28, queue ring of
+    u16 chunk indices +0xD0, its start +0x40D0, count +0x40D8, busySkip
+    +0x40E8, kick counter +0x40F0, busy count +0x40F8, executing
+    +0x4110, shutdown +0x4115); the default scheduler 0x80004CEE0;
+    chunk table at [0x80004C408], 16-byte slots (flags +0, type +2,
+    dependents +4, parents +6/+8, owning op +10), psarc buffer pool at
+    an op's +64 (base +16, in-use mask +40, deferred +48); suspend count
+    0x800059808.
 
 ## Next
 - The GPU: ds_swizzle, the scene's framing, the 1920x1080 R8 texture's
   writer, the lavapipe fault.
-- The rare stop after "TITLE: first": libSceFios2's scheduler state at
-  a stop (see above).
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
