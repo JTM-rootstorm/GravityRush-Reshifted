@@ -176,8 +176,29 @@
     an op's +64 (base +16, in-use mask +40, deferred +48); suspend count
     0x800059808.
 
+- 2026-10-31 (night): the last untranslated pixel shader runs, and the
+  scene fills the screen.
+  - Its ds_swizzle_b32s are all quad mode (offsets 0x8000, 0x8055,
+    0x80AA: every lane of a quad reads lane 0, 1 or 2), hand-made coarse
+    derivatives (lane 1 - lane 0, lane 2 - lane 0) in straight-line code.
+  - The borders and offset: the game renders at 1920x1080 into targets
+    whose pitch and slice are padded (colour 1920x1088 and 2048x2048,
+    depth 2048x1152; a 480x270 one in 512x320) and samples them with
+    T#s of the real size, so a whole padded image under normalized
+    coordinates shrank each pass by 1920/2048 and 1080/1152 (0.9375).
+    Its scissors and viewports are the real size (screen scissor
+    1920x1080, viewport scale 960/-540; PA_CL_VTE_CNTL 0x43F, no window
+    offset). Fixed in x86recomp: such a T# samples a copy of the
+    target's top-left corner; the attract scene now fills the screen.
+  - The 1920x1080 R8 texture at 0x145720000 (tile mode 0) is the stencil
+    of depth target 0x144E20000 (DB_STENCIL_INFO on, DB_STENCIL_READ_BASE
+    0x145720000): the game samples its stencil as a texture next to the
+    depth. Stencil lives only in the host's depth-stencil image, so it
+    reads zeros.
+
 ## Next
-- The GPU: ds_swizzle, the scene's framing, the 1920x1080 R8 texture's
-  writer, the lavapipe fault.
+- The GPU: the stencil sampled as a texture (above), the lavapipe fault;
+  2D array textures (type 13: the shadow pass's 2048x2048 depth, sampled
+  with one at 0x4040000000).
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
