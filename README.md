@@ -1,4 +1,4 @@
-# GravityRush
+# GravityRush-Reshifted
 
 Gravity Rush Remastered (PS4, 2015) as a native Linux and macOS program,
 through static recompilation with

@@ -1,4 +1,4 @@
-# Gravity Rush Remastered (PS4, CUSA01130) → native Linux/macOS static recomp
+# GravityRush-Reshifted: Gravity Rush Remastered (PS4, CUSA01130) → native Linux/macOS static recomp
 
 Rules only. Status, findings and next steps go in FINDINGS.md. The
 lifter, the x87/SSE/AVX models, the runtime and the PS4 platform module
@@ -10,7 +10,7 @@ specific to this game. It is the first PS4 user of x86recomp
 
 ## Layout
 - Project: ~/Documents/Programming/Recomp/PS4/GravityRush (PS4/ is for
-  other PS4 games too)
+  other PS4 games too); GitHub: JTM-rootstorm/GravityRush-Reshifted
 - Library: ~/Documents/Programming/Recomp/x86recomp (add_subdirectory;
   X86RECOMP_DIR overrides the path). Library changes are made in a
   worktree (../../x86recomp-<topic>; the PS4 work is in
