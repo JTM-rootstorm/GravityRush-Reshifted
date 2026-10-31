@@ -109,8 +109,20 @@
   what looked scrambled was not texel data (compute image stores and
   targets the renderer does not track are the likely writers).
 
+- 2026-10-31 (later): compute image stores run. The game's one image
+  compute pass writes an 8x8 and a 1x1 RG32F (tile mode 14), which its
+  draws then sample (an exposure-like reduction): the attract scene is
+  lit differently with it. Its stores' T#s set word 1 bit 6 (a cache
+  policy) above the 38-bit base address, the samples' T#s do not.
+  The other zero 2D-tiled textures (128x64 RGB10A2 at 0x14a290000 is
+  also a colour target the game renders; the 1920x1080 R8 depth-tiled
+  one at 0x145720000 is not a target the renderer tracks) remain.
+  One of three runs stopped after "TITLE: first" with the loading
+  spinner turning (the movie never initialised); not understood yet.
+
 ## Next
-- The GPU: compute image stores (the 2D-tiled textures' writers),
-  ds_swizzle, the scene's framing, the lavapipe fault.
+- The GPU: ds_swizzle, the scene's framing, the 1920x1080 R8 texture's
+  writer, the lavapipe fault; the intermittent stop after "TITLE:
+  first".
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
