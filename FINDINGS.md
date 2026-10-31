@@ -118,11 +118,39 @@
   also a colour target the game renders; the 1920x1080 R8 depth-tiled
   one at 0x145720000 is not a target the renderer tracks) remain.
   One of three runs stopped after "TITLE: first" with the loading
-  spinner turning (the movie never initialised); not understood yet.
+  spinner turning (the movie never initialised); see below.
+- 2026-10-31: the stop after "TITLE: first" (1 run in roughly 6 to 40,
+  GPU-free; never with GRR_TRACE=1 from the start, which slows it).
+  What is known:
+  - Nothing is blocked in the HLE: the render thread flips every frame
+    (flip event, equeue), the main loop runs (its frame semaphore), the
+    job workers and libSceFios2's threads idle. The title waits on
+    script work that never starts: in a good run, right after "TITLE:
+    first" the main thread makes a fiber (entry 0x401370) for the fiber
+    worker and libSceFios2 starts ~800 preads; in a stopped run the fiber
+    worker sleeps and no read is issued.
+  - The game's fiber job system (0x400D90-0x4019xx): sub_400F50 queues a
+    fiber on a worker's list and signals its semaphore only when the
+    list was empty; the worker (sub_4011A0) swaps lists under a mutex and
+    runs each (sceFiberRun), finalizing those that return 0. Script
+    fibers switch among themselves in a ring (sceFiberSwitch). In the
+    stopped runs the ring stops early (32 switches against 170-230 in
+    good runs) and the newly made title fibers are never switched to.
+  - Fibers run on two worker threads and move between them; the HLE
+    used to resume a moved fiber with the first thread's registers
+    (fixed in x86recomp, with fs read per use in x64 lifted code). The
+    stop still happens after the fix (1 in 42 runs), so the cause is
+    elsewhere: likely in how the game's script scheduler decides which
+    fiber runs next.
+  - A stopped run is caught by a watcher (no "movie initialize start"
+    90 s after "TITLE: first"); tracing switched on only then shows the
+    main loop's per-frame calls, nothing unusual.
 
 ## Next
 - The GPU: ds_swizzle, the scene's framing, the 1920x1080 R8 texture's
-  writer, the lavapipe fault; the intermittent stop after "TITLE:
-  first".
+  writer, the lavapipe fault.
+- The intermittent stop after "TITLE: first": the game's script
+  scheduler (which fiber the ring switches to), from a stopped run's
+  fiber log.
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
