@@ -101,9 +101,16 @@
   An intermittent host fault inside lavapipe (a memcpy past a mapping)
   is not understood yet.
 
+- 2026-10-31: 2D-tiled (and depth- and displayable-tiled) textures are
+  read, from the console's tile mode table (x86recomp orbis/gpu/tiling).
+  The 2D-tiled textures the game samples in its first 300 s (mode 14:
+  128x64 and 256x128 RGB10A2, 8x8 RG32F; mode 0: 1920x1080 R8) are all
+  zeros in guest memory: they are written by the GPU, not uploaded, so
+  what looked scrambled was not texel data (compute image stores and
+  targets the renderer does not track are the likely writers).
+
 ## Next
-- The GPU: 2D-tiled textures (need the console's tile mode table),
-  ds_swizzle, compute image stores, the scene's framing, the lavapipe
-  fault.
+- The GPU: compute image stores (the 2D-tiled textures' writers),
+  ds_swizzle, the scene's framing, the lavapipe fault.
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
