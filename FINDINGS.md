@@ -193,11 +193,16 @@
   - The 1920x1080 R8 texture at 0x145720000 (tile mode 0) is the stencil
     of depth target 0x144E20000 (DB_STENCIL_INFO on, DB_STENCIL_READ_BASE
     0x145720000): the game samples its stencil as a texture next to the
-    depth. Stencil lives only in the host's depth-stencil image, so it
-    reads zeros.
+    depth (T#: 8-bit UNORM, all four channels from X). Fixed in
+    x86recomp: the stencil is resolved into an R8 image when sampled.
+    It still reads zeros here: only draws with geometry shaders (skipped)
+    write it, with REPLACE_OP of 0x80 (DB_DEPTH_CONTROL 0x737,
+    DB_STENCIL_CONTROL 0x40, DB_STENCILREFMASK 0x80FFFF80), so they
+    mark what they draw for the composite.
 
 ## Next
-- The GPU: the stencil sampled as a texture (above), the lavapipe fault;
+- The GPU: geometry shaders (ES + GS; their draws mark the stencil the
+  composite reads), the lavapipe fault;
   2D array textures (type 13: the shadow pass's 2048x2048 depth, sampled
   with one at 0x4040000000).
 - Values the HLE reports that are not measured on the console yet:
