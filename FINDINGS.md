@@ -234,8 +234,30 @@
     shader binds a second array T# at 0x4040000000 (unmapped, read as
     black).
 
+- 2026-10-31 (depth clears): the intro's smears and its fade to black
+  were depth targets never cleared.
+  - The game clears depth through HTILE: each frame a compute shader
+    (0x142218200) fills the HTILE with 0xFFFFFFF0 (every tile's ZMASK 0:
+    cleared to DB_DEPTH_CLEAR, 1.0), for the main depth buffer
+    0x144E20000 (HTILE 0x145960000, 0x30000 bytes, depth only:
+    TILE_STENCIL_DISABLE) and the shadow cascades 0x145990000 (HTILE
+    0x149990000, 1 MiB for the four slices). Draws with
+    DB_RENDER_CONTROL 0x60 then decompress in place.
+  - Without the clear, old depth stayed: the birds' shadows stayed in
+    the cascades (the trails behind them), and old depth in the main
+    buffer hid each new frame's geometry until the screen went black.
+    Modelled in x86recomp; the intro now plays to the apple and the
+    title prompt.
+  - Also fixed: the shadow passes' polygon offset (PA_SU_POLY_OFFSET_*
+    at 0x2DE-0x2E3: slope scale 16, i.e. 1.0, offset 1, float depth)
+    was read from the wrong registers; draws with CB_COLOR_CONTROL's
+    MODE CB_DISABLE wrote colour.
+  - The second array T# the shadow shader binds is the cascades'
+    descriptor with base word 0x40400000 (3.0f as bits): a placeholder,
+    never mapped.
+  - Left: the sky and fog show banding (stepped gradients).
+
 ## Next
-- The GPU: the lavapipe fault; what the second shadow T# (0x4040000000)
-  is.
+- The GPU: the sky and fog banding; the lavapipe fault.
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
