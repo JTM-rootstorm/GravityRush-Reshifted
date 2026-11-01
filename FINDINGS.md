@@ -298,6 +298,33 @@
   In 75 s the game asked scePlayGoGetLocus about chunks 0, 1 and 2 only,
   so the HLE's lenient bound (ids below 1000) never applies here.
 
+- 2026-11-01 (frame rate): the attract scene's zoom ran at about 5 fps
+  and the apple at 16 (RTX 4080, flips counted over 5 s). The GPU
+  thread (the command processor and renderer) was the limit; the game's
+  own threads were mostly idle. Fixed in x86recomp:
+  - texture change checks hashed every byte one at a time: 34% of all
+    CPU time (now four 64-bit lanes);
+  - the geometry-shader passes copied whole 4 MiB rings to the host GPU
+    and back for draws of a wave or two (now sized to the draw);
+  - each vertex attribute stream (base, +0xC, +0x14, ...) copied the
+    same interleaved vertex buffer again (now shared within a draw);
+  - shaders were walked and decoded again for every draw (now kept while
+    their code words are unchanged).
+  Now about 17 fps in the zoom and 50 at the apple. The demo plays in
+  frames, so it also ends sooner. What is left:
+  - the flocks of birds: about 24 geometry-shader draws a frame, each an
+    ES and a GS compute pass that waits for the GPU and reads its rings
+    back to build the copy shader's strip indices on the CPU. Skipping
+    them gives 29-43 fps in the zoom. Keeping the rings and emits on the
+    GPU (indices built there) needs gfx::Device support for buffers a
+    dispatch leaves for a later draw;
+  - the other compute dispatches (skipping them: the apple at 78 fps)
+    are the same round trip;
+  - presenting a frame waits until the GPU has finished it (Wayland on
+    NVIDIA), and SDL keeps other submissions waiting meanwhile, so the
+    GPU thread's work and the GPU's do not overlap. GPU load in the zoom
+    is about 38% at 16 fps, about 24 ms of GPU work a frame.
+
 ## Next
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
@@ -308,3 +335,6 @@
   default thread stack is 64 KiB (not 2 MiB) and direct memory 4.5 GiB;
   the HLE follows. A 90 s GPU run with them is clean and still finds its
   save memory in savedata/1.
+- Frame rate: the geometry-shader draws without a host round trip (rings,
+  emits and strip indices kept on the GPU), then the other compute
+  dispatches' read-back; see (frame rate) above.
