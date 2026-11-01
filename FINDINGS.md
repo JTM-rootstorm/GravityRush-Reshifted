@@ -286,9 +286,12 @@
   seen before the fiber fixes (a fiber moved between threads ran with
   the other thread's registers and TLS), the likeliest cause; not
   confirmed.
+- 2026-11-01 (later): the only T# of a type other than 2D the game
+  binds in its first 120 s is the shadow shader's placeholder array
+  (0x4040000000, 2048x2048x4, depth tile mode), which is unmapped; it
+  read as black already, now without the warning. A clean run on the
+  GPU warns of nothing in the renderer.
 
 ## Next
-- The GPU: texture types other than 2D (the one warning left in a
-  clean run).
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
