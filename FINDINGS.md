@@ -200,9 +200,27 @@
     DB_STENCIL_CONTROL 0x40, DB_STENCILREFMASK 0x80FFFF80), so they
     mark what they draw for the composite.
 
+- 2026-10-31 (late): the geometry-shader draws run (x86recomp: ES and GS
+  as compute passes on the rings, then the copy shader).
+  - Two ES/GS/copy-shader triples in the attract scene (ES 0x14F042200,
+    GS 0x14F043A00, copy 0x14F043800; ES 0x14F055700, GS 0x14F055C00,
+    copy 0x14F055B00), both VGT_SHADER_STAGES_EN 0xB0, VGT_GS_MODE
+    0x180033 (scenario G, off chip), triangle-list input, triangle-strip
+    output, at most 8 vertices (VGT_GS_MAX_VERT_OUT 8; GSVS items 0xA0
+    and 0x20 dwords, ESGS items 0xC and 8).
+  - The rings are the game's own: its global resource table's V#s at
+    +0x20 (ESGS write, swizzled, index stride 64), +0x30 (ESGS read),
+    +0x40-0x70 (GSVS write per stream, swizzled, index stride 16, stride
+    4 x components x 8) and +0x80 (GSVS read), 4 MiB each, base
+    0x142218500 and 0x142618500 with 0x3001 in the V#s' base-high field
+    (bits above the GPU's 40-bit addresses).
+  - What they draw: the flocks of birds (122 primitives a draw, each GS
+    emitting a short triangle strip, up to 4 triangles); they were
+    missing before.
+
 ## Next
-- The GPU: geometry shaders (ES + GS; their draws mark the stencil the
-  composite reads), the lavapipe fault;
+- The GPU: whether the composite now finds the GS draws' stencil marks;
+  the lavapipe fault;
   2D array textures (type 13: the shadow pass's 2048x2048 depth, sampled
   with one at 0x4040000000).
 - Values the HLE reports that are not measured on the console yet:
