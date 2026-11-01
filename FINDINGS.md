@@ -292,6 +292,12 @@
   read as black already, now without the warning. A clean run on the
   GPU warns of nothing in the renderer.
 
+- 2026-11-01: PlayGo. The installed package (/user/app/CUSA01130/app.pkg
+  on the console, read over FTP: entry 0x1001 playgo-chunk.dat and 0x1003
+  playgo-manifest.xml) has 4 chunks (0-3), 1 scenario, 1 initial chunk.
+  In 75 s the game asked scePlayGoGetLocus about chunks 0, 1 and 2 only,
+  so the HLE's lenient bound (ids below 1000) never applies here.
+
 ## Next
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
