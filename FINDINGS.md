@@ -255,9 +255,32 @@
   - The second array T# the shadow shader binds is the cascades'
     descriptor with base word 0x40400000 (3.0f as bits): a placeholder,
     never mapped.
-  - Left: the sky and fog show banding (stepped gradients).
+  - Left: the sky and fog show banding (stepped gradients); see
+    (banding) below.
+
+- 2026-10-31 (banding): the sky's banding came from two translation
+  bugs in the post-processing chain, found by dumping the display buffer
+  after each pass of one frame.
+  - The chain: the tonemap (fp16 scene 0x143E30000, bloom, stencil mask)
+    writes the display buffer (8-bit sRGB, COMP_SWAP ALT); a copy pass
+    writes it to 0x14C7F0000 (R8G8B8A8 sRGB) with luma in alpha; FXAA
+    reads that back into the display buffer; then the overlay (the fade
+    and logos).
+  - FXAA's averages use v_add_f32 with output modifier div:2; it was
+    translated as a + b * 0.5, so its output was about 1.2x its input:
+    the sky clipped and every fourth or fifth code went missing (the
+    rings). Fixed in x86recomp.
+  - The display buffer and the scene and bloom targets are written with
+    COMP_SWAP ALT (BGRA in memory) and read through BGRA T#s; red and
+    blue were swapped twice, so the copy pass swapped the image and the
+    luma weights. Fixed in x86recomp (targets read through their swap).
+  - 0x14CFE8000 (2048x1152, CB format 8 with ALT_REV) is an alpha-only
+    target the scene pass reads; it held the shader's red, not its
+    alpha. Fixed in x86recomp.
+  - After the fixes the sky has no empty codes through the chain and no
+    rings at any contrast.
 
 ## Next
-- The GPU: the sky and fog banding; the lavapipe fault.
+- The GPU: the lavapipe fault.
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
