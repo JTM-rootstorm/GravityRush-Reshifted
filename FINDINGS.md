@@ -294,4 +294,6 @@
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
-  x86recomp platforms/orbis/docs/hle.md.
+  x86recomp platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
+  measures most of them (PS4-HB FINDINGS: HLE VALUES); it needs the
+  console on.
