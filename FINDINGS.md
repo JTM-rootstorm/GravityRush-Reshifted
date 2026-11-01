@@ -218,10 +218,24 @@
     emitting a short triangle strip, up to 4 triangles); they were
     missing before.
 
+- 2026-10-31 (shadows): the composite finds the birds' stencil marks,
+  and the shadow cascades are drawn and sampled.
+  - Stencil: in a 180 s GPU-free run the composite sampled the stencil
+    892 times; bit 7 is set in 3-509 pixels a frame (distant birds) once
+    the flocks are in view, and in none before they appear or after the
+    scene cuts.
+  - Shadows: depth target 0x145990000 (2048x2048, 32-bit float) holds
+    four cascades, drawn one slice each (DB_DEPTH_VIEW 0x0, 0x2001,
+    0x4002, 0x6003) and sampled together through one 2D array T# (type
+    13, slices 0-3) with a depth-compare sampler. All four had gone into
+    one image, and the T# read as black. Fixed in x86recomp: depth
+    targets become 2D arrays of the slices drawn or sampled. The scene
+    gains the tree's shadow on its rock and small cast shadows. The same
+    shader binds a second array T# at 0x4040000000 (unmapped, read as
+    black).
+
 ## Next
-- The GPU: whether the composite now finds the GS draws' stencil marks;
-  the lavapipe fault;
-  2D array textures (type 13: the shadow pass's 2048x2048 depth, sampled
-  with one at 0x4040000000).
+- The GPU: the lavapipe fault; what the second shadow T# (0x4040000000)
+  is.
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
