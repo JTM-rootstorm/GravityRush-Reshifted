@@ -280,7 +280,15 @@
   - After the fixes the sky has no empty codes through the chain and no
     rings at any contrast.
 
+- 2026-11-01: the lavapipe fault (2026-10-26) no longer shows: seven
+  runs on lavapipe (four of 150 s, three of 300 s at once) ran to their
+  timeouts with no fault, past the attract movie into the demo. It was
+  seen before the fiber fixes (a fiber moved between threads ran with
+  the other thread's registers and TLS), the likeliest cause; not
+  confirmed.
+
 ## Next
-- The GPU: the lavapipe fault.
+- The GPU: texture types other than 2D (the one warning left in a
+  clean run).
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md.
