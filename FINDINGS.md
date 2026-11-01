@@ -295,5 +295,6 @@
 ## Next
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
-  measures most of them (PS4-HB FINDINGS: HLE VALUES); it needs the
-  console on.
+  measured the thread defaults, the TSC and the GPU clock (2026-11-01,
+  PS4-HB FINDINGS: HLE VALUES); the user, pad, display and PlayGo values
+  need an application's process on the console, not a payload.
