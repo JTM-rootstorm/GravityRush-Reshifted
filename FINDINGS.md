@@ -301,6 +301,10 @@
 ## Next
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
-  measured the thread defaults, the TSC and the GPU clock (2026-11-01,
-  PS4-HB FINDINGS: HLE VALUES); the user, pad, display and PlayGo values
-  need an application's process on the console, not a payload.
+  and plugins/hlevals (a GoldHEN plugin in this game's process) measured
+  all but the user's name, the handles' values, the flip data's low 12
+  bits and PlayGo's install speed and past-count reply (2026-11-01, PS4-HB
+  FINDINGS: HLE VALUES, HLE VALUES IN A GAME). In this game's process the
+  default thread stack is 64 KiB (not 2 MiB) and direct memory 4.5 GiB;
+  the HLE follows. A 90 s GPU run with them is clean and still finds its
+  save memory in savedata/1.
