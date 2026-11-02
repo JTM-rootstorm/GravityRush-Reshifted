@@ -413,6 +413,23 @@
   logo from about 355 to about 423, the apple from about 165 to a flat
   186 (likely no longer the CPU). Frames match the previous build's at
   the same frame numbers but for timing. A 120 s run is clean.
+- 2026-11-02 (frame rate, 7): counted per second in the zoom, every
+  indexed draw copied its indices (widened to 32 bits) into the upload:
+  1.5 GB/s, from only about 490 index ranges, each drawn over and over.
+  Index ranges are now kept like large ranges and drawn from the kept
+  GPU buffer (x86recomp c18c02e). Then the apple was GPU-bound, not the
+  CPU: the GPU thread waited on fences about half of each second, the
+  GPU read 93% busy at 125 W of 320. Kept buffers were copied into the
+  draw arena on the GPU at each flush (about 105 copies a frame, 20 GB/s)
+  and SDL_GPU puts pipeline barriers around every buffer copy. GPU
+  buffers now live in one heap the shaders read in place (3c976e2).
+  Keeping ranges from 4 KiB instead of 64 KiB was slower (108 against
+  142 fps in the zoom): each kept buffer then cost copies per flush.
+  Measured A/B, steps in order: the zoom about 117, 142, 160 fps, the
+  apple 186, 225, 272. The logo lost about 5% (424 to about 395): GPU
+  time, likely the dispatches that write GPU buffers (8 a frame there),
+  whose copies into the heap now wait on shader reads of the whole heap.
+  Frames match but for timing; a 120 s run is clean.
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
@@ -425,10 +442,13 @@
   the HLE follows. A 90 s GPU run with them is clean and still finds its
   save memory in savedata/1.
 - Frame rate: the GPU thread is still the limit in the zoom (about 1700
-  draws a frame, at 117 fps). Left on it: Resolve (the scalar
-  evaluation per draw, about a fifth), the arenas copied into the upload
-  ring at each flush, DrawProgram's recording, the program key string
-  per draw. Moving the device's recording and submission to a thread of
-  its own would take the driver's share off it. Why the apple holds
-  exactly 186 fps is not looked at yet; see (frame rate, 2) to
-  (frame rate, 6) above.
+  draws a frame, at about 160 fps). Left on it: DrawProgram's recording
+  (about a quarter), Resolve (the scalar evaluation per draw, about a
+  fifth), Bind, the small buffers (under 64 KiB) still copied per draw
+  (about 0.85 GB/s, 98% of their bytes unchanged since their last
+  draw), the program key string per draw. Moving the device's recording
+  and submission to a thread of its own would take the driver's share
+  off it. The apple (about 272 fps) waits on the GPU: about 45 flushes a
+  frame, each a copy pass then a render pass; the GPU writes into the
+  heap (dispatches) serialise with its reads. See (frame rate, 2) to
+  (frame rate, 7) above.
