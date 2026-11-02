@@ -355,6 +355,21 @@
   40-45 fps, the apple from about 70 to about 90; frames look as before.
   What is left in the zoom is the flushes, render passes and dispatches
   of (frame rate, 2).
+- 2026-11-02 (frame rate, 4): a flat profile (perf record -e
+  cpu-clock:u, no call graphs: -g is refused) of the zoom: one thread,
+  the GPU thread, is about 77% busy; the game's threads about 12% each.
+  On it, the resolution key (every code word, kilobytes per draw, then
+  hashed by the program map), 16-bit indices widened one push_back at a
+  time, and the arenas zeroing the room GPU buffer copies fill. Fixed in
+  x86recomp e0cb6c1. Measured A/B in the same runs (another session's
+  jobs had the host at load 5-10, so only the quieter runs count): the
+  zoom from about 41 to about 50-55 fps, the apple from about 90 to
+  about 105-110; frames look as before. Not worth it: keeping
+  resolutions per stage registers (15% hits: the user SGPRs carry
+  per-draw pointers), a faster content hash (the current one runs at
+  23 GB/s, memory-bound; textures are about 2.2 GB/s of it, 9% of the
+  GPU thread, once a submission). Left on the GPU thread: Bind (most of
+  it texture hashing), Resolver::Step and its maps, DrawProgram.
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
@@ -367,4 +382,5 @@
   the HLE follows. A 90 s GPU run with them is clean and still finds its
   save memory in savedata/1.
 - Frame rate: dispatches breaking render passes (about 170 flushes and
-  85 dispatches a frame); see (frame rate, 2) and (frame rate, 3) above.
+  85 dispatches a frame), Resolver::Step per draw; see (frame rate, 2)
+  to (frame rate, 4) above.
