@@ -4,19 +4,19 @@ project(grr_recomp LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-# x86recomp's runtime and HLE modules are shared libraries: rebuilding one
+# SwARc's runtime and HLE modules are shared libraries: rebuilding one
 # does not relink the game.
 set(CMAKE_LINK_DEPENDS_NO_SHARED ON)
 
-# x86recomp: the lifter, the SSE/x87 models, the runtime and its PS4
+# SwARc: the lifter, the SSE/x87 models, the runtime and its PS4
 # platform module (a sibling checkout), without the Win32 one.
-set(X86RECOMP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../x86recomp"
-    CACHE PATH "x86recomp source tree")
+set(SWARC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../SwARc"
+    CACHE PATH "SwARc source tree")
 set(RECOMP_PLATFORM_ORBIS ON CACHE BOOL "PS4 (Orbis OS) platform module" FORCE)
 set(RECOMP_PLATFORM_WIN32 OFF CACHE BOOL "Win32 platform module (Windows PC games)" FORCE)
 
 enable_testing()
-add_subdirectory("${X86RECOMP_DIR}" x86recomp)
+add_subdirectory("${SWARC_DIR}" swarc)
 
 # The game: its lifted code (generated/, produced by tools/lift.sh), a
 # lifted module of its own, and an executable that holds main(), with the

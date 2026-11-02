@@ -3,18 +3,18 @@
 Rules only. Status, findings and next steps go in FINDINGS.md. The
 lifter, the x87/SSE/AVX models, the runtime and the PS4 platform module
 (platforms/orbis: the ELF loader, libkernel and the other system
-libraries' HLE) live in the shared x86recomp library (../../x86recomp,
+libraries' HLE) live in the shared SwARc library (../../SwARc,
 its own git repo with its own CLAUDE.md); this repo holds what is
-specific to this game. It is the first PS4 user of x86recomp
+specific to this game. It is the first PS4 user of SwARc
 (ARCHITECTURE.md there, "Console platforms").
 
 ## Layout
 - Project: ~/Documents/Programming/Recomp/PS4/GravityRush (PS4/ is for
   other PS4 games too); GitHub: JTM-rootstorm/GravityRush-Reshifted
-- Library: ~/Documents/Programming/Recomp/x86recomp (add_subdirectory;
-  X86RECOMP_DIR overrides the path). Library changes are made in a
-  worktree (../../x86recomp-<topic>; the PS4 work is in
-  ../../x86recomp-ps4) and committed there; its rules apply.
+- Library: ~/Documents/Programming/Recomp/SwARc (add_subdirectory;
+  SWARC_DIR overrides the path). Library changes are made in a
+  worktree (../../SwARc-<topic>; the PS4 work is in
+  ../../SwARc-ps4) and committed there; its rules apply.
 - Game: the decrypted app0 dumped from the user's own console (NEVER
   commit or copy into the repo):
   ~/Documents/Programming/Recomp/PS4-HB/dumps/games/CUSA01130/mnt/sandbox/pfsmnt/CUSA01130-app0/
@@ -25,7 +25,7 @@ specific to this game. It is the first PS4 user of x86recomp
   library.
 
 ## Build
-- `cmake --preset release -DX86RECOMP_DIR=$HOME/Documents/Programming/Recomp/x86recomp-ps4 && cmake --build --preset release`
+- `cmake --preset release -DSWARC_DIR=$HOME/Documents/Programming/Recomp/SwARc-ps4 && cmake --build --preset release`
   (the PS4 platform module is turned on by this project's CMakeLists).
 - Lifting is a separate step; re-run it after any change to the
   library's tools/lifter_x86, manifest/ or the binaries, then re-run cmake

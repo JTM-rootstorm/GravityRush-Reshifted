@@ -5,7 +5,7 @@
 # usage: tools/lift.sh APP0_DIR [RECOMP_LIFT]
 set -e
 G=$1
-L=${2:-out/build/release/x86recomp/tools/lifter_x86/recomp_lift}
+L=${2:-out/build/release/swarc/tools/lifter_x86/recomp_lift}
 if [ -z "$G" ]; then
   echo "usage: tools/lift.sh APP0_DIR [RECOMP_LIFT]" >&2
   exit 2

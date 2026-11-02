@@ -75,7 +75,7 @@
   checked against the console yet.
 
 - 2026-10-26: fonts follow libSceFontFt 11.00's use of FreeType
-  (x86recomp platforms/orbis/docs/hle.md). The game opens 11 fonts from
+  (SwARc platforms/orbis/docs/hle.md). The game opens 11 fonts from
   memory: 5 CFF OpenType fonts kerned only by GPOS, 2 TrueType fonts
   with 'kern' tables, the rest (CJK, Korean, its own symbols) without
   kerning; it renders at 48 px into 1-byte surfaces (512x128, 128x256).
@@ -83,7 +83,7 @@
   glyphs a row lower (libSceFont 11.00 does so for SDKs 0.93 to 2.50).
   No effects (weight, slant) used.
 
-- 2026-10-26 (later): the GPU draws (x86recomp orbis/gpu). The game's
+- 2026-10-26 (later): the GPU draws (SwARc orbis/gpu). The game's
   shaders: 89 (31 VS, 51 PS, 3 CS, 2 ES + 2 GS), 96 distinct GCN
   opcodes; every VS/PS/CS variant translates but one PS using
   ds_swizzle_b32. Draws: DRAW_INDEX_OFFSET_2 and DRAW_INDEX_AUTO, triangle
@@ -102,7 +102,7 @@
   is not understood yet.
 
 - 2026-10-31: 2D-tiled (and depth- and displayable-tiled) textures are
-  read, from the console's tile mode table (x86recomp orbis/gpu/tiling).
+  read, from the console's tile mode table (SwARc orbis/gpu/tiling).
   The 2D-tiled textures the game samples in its first 300 s (mode 14:
   128x64 and 256x128 RGB10A2, 8x8 RG32F; mode 0: 1920x1080 R8) are all
   zeros in guest memory: they are written by the GPU, not uploaded, so
@@ -139,7 +139,7 @@
     (sub_405510, sub_4050A0, via sub_5FCFC0 / sub_5FCEE0) are re-queued
     by the libSceFios2 completion callback (sub_405240). The worker
     takes a failed sceFiberRun for a finished fiber and finalizes it.
-  - Fibers move between the two worker threads. Fixed in x86recomp: a
+  - Fibers move between the two worker threads. Fixed in SwARc: a
     moved fiber used the first thread's registers and TLS (crash or
     corruption), and a fiber still switching away was refused as
     running, which made the worker drop it (seen in passing runs).
@@ -188,19 +188,19 @@
     coordinates shrank each pass by 1920/2048 and 1080/1152 (0.9375).
     Its scissors and viewports are the real size (screen scissor
     1920x1080, viewport scale 960/-540; PA_CL_VTE_CNTL 0x43F, no window
-    offset). Fixed in x86recomp: such a T# samples a copy of the
+    offset). Fixed in SwARc: such a T# samples a copy of the
     target's top-left corner; the attract scene now fills the screen.
   - The 1920x1080 R8 texture at 0x145720000 (tile mode 0) is the stencil
     of depth target 0x144E20000 (DB_STENCIL_INFO on, DB_STENCIL_READ_BASE
     0x145720000): the game samples its stencil as a texture next to the
     depth (T#: 8-bit UNORM, all four channels from X). Fixed in
-    x86recomp: the stencil is resolved into an R8 image when sampled.
+    SwARc: the stencil is resolved into an R8 image when sampled.
     It still reads zeros here: only draws with geometry shaders (skipped)
     write it, with REPLACE_OP of 0x80 (DB_DEPTH_CONTROL 0x737,
     DB_STENCIL_CONTROL 0x40, DB_STENCILREFMASK 0x80FFFF80), so they
     mark what they draw for the composite.
 
-- 2026-10-31 (late): the geometry-shader draws run (x86recomp: ES and GS
+- 2026-10-31 (late): the geometry-shader draws run (SwARc: ES and GS
   as compute passes on the rings, then the copy shader).
   - Two ES/GS/copy-shader triples in the attract scene (ES 0x14F042200,
     GS 0x14F043A00, copy 0x14F043800; ES 0x14F055700, GS 0x14F055C00,
@@ -228,7 +228,7 @@
     four cascades, drawn one slice each (DB_DEPTH_VIEW 0x0, 0x2001,
     0x4002, 0x6003) and sampled together through one 2D array T# (type
     13, slices 0-3) with a depth-compare sampler. All four had gone into
-    one image, and the T# read as black. Fixed in x86recomp: depth
+    one image, and the T# read as black. Fixed in SwARc: depth
     targets become 2D arrays of the slices drawn or sampled. The scene
     gains the tree's shadow on its rock and small cast shadows. The same
     shader binds a second array T# at 0x4040000000 (unmapped, read as
@@ -246,7 +246,7 @@
   - Without the clear, old depth stayed: the birds' shadows stayed in
     the cascades (the trails behind them), and old depth in the main
     buffer hid each new frame's geometry until the screen went black.
-    Modelled in x86recomp; the intro now plays to the apple and the
+    Modelled in SwARc; the intro now plays to the apple and the
     title prompt.
   - Also fixed: the shadow passes' polygon offset (PA_SU_POLY_OFFSET_*
     at 0x2DE-0x2E3: slope scale 16, i.e. 1.0, offset 1, float depth)
@@ -269,14 +269,14 @@
   - FXAA's averages use v_add_f32 with output modifier div:2; it was
     translated as a + b * 0.5, so its output was about 1.2x its input:
     the sky clipped and every fourth or fifth code went missing (the
-    rings). Fixed in x86recomp.
+    rings). Fixed in SwARc.
   - The display buffer and the scene and bloom targets are written with
     COMP_SWAP ALT (BGRA in memory) and read through BGRA T#s; red and
     blue were swapped twice, so the copy pass swapped the image and the
-    luma weights. Fixed in x86recomp (targets read through their swap).
+    luma weights. Fixed in SwARc (targets read through their swap).
   - 0x14CFE8000 (2048x1152, CB format 8 with ALT_REV) is an alpha-only
     target the scene pass reads; it held the shader's red, not its
-    alpha. Fixed in x86recomp.
+    alpha. Fixed in SwARc.
   - After the fixes the sky has no empty codes through the chain and no
     rings at any contrast.
 
@@ -301,7 +301,7 @@
 - 2026-11-01 (frame rate): the attract scene's zoom ran at about 5 fps
   and the apple at 16 (RTX 4080, flips counted over 5 s). The GPU
   thread (the command processor and renderer) was the limit; the game's
-  own threads were mostly idle. Fixed in x86recomp:
+  own threads were mostly idle. Fixed in SwARc:
   - texture change checks hashed every byte one at a time: 34% of all
     CPU time (now four 64-bit lanes);
   - the geometry-shader passes copied whole 4 MiB rings to the host GPU
@@ -325,7 +325,7 @@
     GPU thread's work and the GPU's do not overlap. GPU load in the zoom
     is about 38% at 16 fps, about 24 ms of GPU work a frame.
 - 2026-11-01 (frame rate, 2): the geometry-shader draws now stay on the
-  GPU (x86recomp 142ab5a: GPU buffers in gfx::Device, rings and emits
+  GPU (SwARc 142ab5a: GPU buffers in gfx::Device, rings and emits
   kept there, strip indices built by a compute program, drawn indirect).
   That alone gave about 19 fps in the zoom: each dispatch still created
   its own transfer buffers, which was most of its cost. Reusing the
@@ -348,7 +348,7 @@
   took about 4 GB/s from the host (2.6 in the zoom), 90% of it from
   ranges of 64 KiB or more and 40% repeating within a flush; copying
   only the vertices a part's indices reach would have saved about 42%.
-  Instead (x86recomp f606770) read-only ranges of 64 KiB or more stay
+  Instead (SwARc f606770) read-only ranges of 64 KiB or more stay
   in GPU buffers, compared once a submission (as textures are) and
   uploaded when they change; a draw copies them on the GPU, once a
   flush. The host now copies about 0.37 GB/s. The zoom from 36-40 to
@@ -361,7 +361,7 @@
   On it, the resolution key (every code word, kilobytes per draw, then
   hashed by the program map), 16-bit indices widened one push_back at a
   time, and the arenas zeroing the room GPU buffer copies fill. Fixed in
-  x86recomp e0cb6c1. Measured A/B in the same runs (another session's
+  SwARc e0cb6c1. Measured A/B in the same runs (another session's
   jobs had the host at load 5-10, so only the quieter runs count): the
   zoom from about 41 to about 50-55 fps, the apple from about 90 to
   about 105-110; frames look as before. Not worth it: keeping
@@ -375,14 +375,14 @@
   most 4 command buffers in flight against about 180 submissions a
   frame, with the upload staging buffer mapped cycling (each in-flight
   submission held a copy; after loading it was 128 MiB, so a deeper
-  queue ran out of the 6 GB cap). Fixed in x86recomp eaf5e68: a staging
+  queue ran out of the 6 GB cap). Fixed in SwARc eaf5e68: a staging
   ring and 32 in flight (64 was about 1 GB more VRAM for little more).
   (b) Two compute dispatches a frame (262144 groups each) write a depth
   target's whole HTILE (1 MiB at 0x149990000, 192 KiB at 0x145960000),
   each followed by an EOS label and a WAIT_REG_MEM on it, and the
   target's next draw comes straight after: the fast-clear check read the
   HTILE back, draining the GPU queue, 90-240 ms a second. Fixed in
-  x86recomp dd76ab4: dispatch results land when the GPU is done, labels
+  SwARc dd76ab4: dispatch results land when the GPU is done, labels
   and EOP events wait behind them, a WAIT_REG_MEM on a queued label
   compares the value it will write, and a whole-HTILE write is applied
   on the GPU (an indirect clear draw decided by a program reading it).
@@ -395,7 +395,7 @@
   is refused) of the GPU thread in the zoom. Fixed:
   - textures and kept ranges were hashed in every submission that used
     them, 3-8 GB/s of hashing, a third of the thread in the apple. Now
-    (x86recomp 846d37f, da1ac9c) a range found unchanged twice is
+    (SwARc 846d37f, da1ac9c) a range found unchanged twice is
     write-watched (its host pages read-only until written) and not
     hashed again until a write: after loading nothing is hashed;
   - Resolve went through a map of every instruction per draw; the walk
@@ -417,7 +417,7 @@
   indexed draw copied its indices (widened to 32 bits) into the upload:
   1.5 GB/s, from only about 490 index ranges, each drawn over and over.
   Index ranges are now kept like large ranges and drawn from the kept
-  GPU buffer (x86recomp c18c02e). Then the apple was GPU-bound, not the
+  GPU buffer (SwARc c18c02e). Then the apple was GPU-bound, not the
   CPU: the GPU thread waited on fences about half of each second, the
   GPU read 93% busy at 125 W of 320. Kept buffers were copied into the
   draw arena on the GPU at each flush (about 105 copies a frame, 20 GB/s)
@@ -442,12 +442,12 @@
     without -state Ready) and -world ep00_00p draw black at about
     1000 fps with no script output: episode worlds need what the
     title's new game sets up (the Lua in lua/game/world/title/).
-  - So runs walk the title instead: x86recomp's TEST_PAD (a file of
+  - So runs walk the title instead: SwARc's TEST_PAD (a file of
     timed presses for background runs), cross every 2 s from 10 s.
     That selects New Game, plays the opening movie (several minutes,
     the credits over the apple; the world loads behind it) and reaches
     "pc is in cc" in about 9 minutes.
-  - Fixed on the way (x86recomp): a 34-case switch at 0x1145440 whose
+  - Fixed on the way (SwARc): a 34-case switch at 0x1145440 whose
     bounds check was 17 instructions before its jmp, past the lifter's
     16 (27 more tables recovered, 823 to 850);
     sceKernelCheckedReleaseDirectMemory (the movie allocator's texture
@@ -459,7 +459,7 @@
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
-  x86recomp platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
+  SwARc platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
   and plugins/hlevals (a GoldHEN plugin in this game's process) measured
   all but the user's name, the handles' values, the flip data's low 12
   bits and PlayGo's install speed and past-count reply (2026-11-01, PS4-HB
