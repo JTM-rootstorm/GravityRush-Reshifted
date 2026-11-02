@@ -370,6 +370,26 @@
   23 GB/s, memory-bound; textures are about 2.2 GB/s of it, 9% of the
   GPU thread, once a submission). Left on the GPU thread: Bind (most of
   it texture hashing), Resolver::Step and its maps, DrawProgram.
+- 2026-11-02 (frame rate, 5): the GPU thread was never idle, but about a
+  quarter of its time went to waiting for the GPU. Two causes. (a) At
+  most 4 command buffers in flight against about 180 submissions a
+  frame, with the upload staging buffer mapped cycling (each in-flight
+  submission held a copy; after loading it was 128 MiB, so a deeper
+  queue ran out of the 6 GB cap). Fixed in x86recomp eaf5e68: a staging
+  ring and 32 in flight (64 was about 1 GB more VRAM for little more).
+  (b) Two compute dispatches a frame (262144 groups each) write a depth
+  target's whole HTILE (1 MiB at 0x149990000, 192 KiB at 0x145960000),
+  each followed by an EOS label and a WAIT_REG_MEM on it, and the
+  target's next draw comes straight after: the fast-clear check read the
+  HTILE back, draining the GPU queue, 90-240 ms a second. Fixed in
+  x86recomp dd76ab4: dispatch results land when the GPU is done, labels
+  and EOP events wait behind them, a WAIT_REG_MEM on a queued label
+  compares the value it will write, and a whole-HTILE write is applied
+  on the GPU (an indirect clear draw decided by a program reading it).
+  With the clear draw count forced to 0 the zoom renders dark and black,
+  so that path is what clears. Measured (load 1-4): the zoom from about
+  53 to about 65 fps, the apple from about 110 to about 160; the logo
+  about 350. A 120 s run is clean and reaches the ep00-01c movie.
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
@@ -381,6 +401,7 @@
   default thread stack is 64 KiB (not 2 MiB) and direct memory 4.5 GiB;
   the HLE follows. A 90 s GPU run with them is clean and still finds its
   save memory in savedata/1.
-- Frame rate: dispatches breaking render passes (about 170 flushes and
-  85 dispatches a frame), Resolver::Step per draw; see (frame rate, 2)
-  to (frame rate, 4) above.
+- Frame rate: the GPU thread is now busy all the time on the zoom (about
+  1700 draws a frame): Bind (texture hashing), Resolver::Step and its
+  maps, DrawProgram, about 180 submissions a frame; see (frame rate, 2)
+  to (frame rate, 5) above.
