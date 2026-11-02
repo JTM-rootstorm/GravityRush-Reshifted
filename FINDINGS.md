@@ -390,6 +390,29 @@
   so that path is what clears. Measured (load 1-4): the zoom from about
   53 to about 65 fps, the apple from about 110 to about 160; the logo
   about 350. A 120 s run is clean and reaches the ep00-01c movie.
+- 2026-11-02 (frame rate, 6): a profile with call stacks (perf record
+  -e cpu-clock:u --call-graph dwarf --user-callchains works; plain -g
+  is refused) of the GPU thread in the zoom. Fixed:
+  - textures and kept ranges were hashed in every submission that used
+    them, 3-8 GB/s of hashing, a third of the thread in the apple. Now
+    (x86recomp 846d37f, da1ac9c) a range found unchanged twice is
+    write-watched (its host pages read-only until written) and not
+    hashed again until a write: after loading nothing is hashed;
+  - Resolve went through a map of every instruction per draw; the walk
+    now keeps the instructions the scalar evaluation acts on (3024d5c).
+    16-bit indices widened in a scalar loop (the count was reloaded on
+    each store), 14% of the thread (same commit);
+  - every flush and dispatch was its own command buffer and submission,
+    a third of the thread in the driver. Now one command buffer takes
+    16 of them (0045184; 64 was no faster in the zoom, slower at the
+    logo). Fewer allocations per packet and key (68a675d).
+  Not worth it: remembering resolutions by the stage's registers and the
+  words its scalar loads read (12% hits: per-draw pointers in the user
+  SGPRs, as in (frame rate, 4)); it was slower. Measured A/B against
+  dd76ab4 on a quiet host: the zoom from about 66 to about 117 fps, the
+  logo from about 355 to about 423, the apple from about 165 to a flat
+  186 (likely no longer the CPU). Frames match the previous build's at
+  the same frame numbers but for timing. A 120 s run is clean.
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
@@ -401,7 +424,11 @@
   default thread stack is 64 KiB (not 2 MiB) and direct memory 4.5 GiB;
   the HLE follows. A 90 s GPU run with them is clean and still finds its
   save memory in savedata/1.
-- Frame rate: the GPU thread is now busy all the time on the zoom (about
-  1700 draws a frame): Bind (texture hashing), Resolver::Step and its
-  maps, DrawProgram, about 180 submissions a frame; see (frame rate, 2)
-  to (frame rate, 5) above.
+- Frame rate: the GPU thread is still the limit in the zoom (about 1700
+  draws a frame, at 117 fps). Left on it: Resolve (the scalar
+  evaluation per draw, about a fifth), the arenas copied into the upload
+  ring at each flush, DrawProgram's recording, the program key string
+  per draw. Moving the device's recording and submission to a thread of
+  its own would take the driver's share off it. Why the apple holds
+  exactly 186 fps is not looked at yet; see (frame rate, 2) to
+  (frame rate, 6) above.
