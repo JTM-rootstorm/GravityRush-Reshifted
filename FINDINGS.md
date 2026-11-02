@@ -344,6 +344,17 @@
     dispatch ends the render pass and submits on its own;
   - the present still waits for the GPU (above). The GPU is about 37%
     busy.
+- 2026-11-02 (frame rate, 3): measured on the GPU build, the draw arena
+  took about 4 GB/s from the host (2.6 in the zoom), 90% of it from
+  ranges of 64 KiB or more and 40% repeating within a flush; copying
+  only the vertices a part's indices reach would have saved about 42%.
+  Instead (x86recomp f606770) read-only ranges of 64 KiB or more stay
+  in GPU buffers, compared once a submission (as textures are) and
+  uploaded when they change; a draw copies them on the GPU, once a
+  flush. The host now copies about 0.37 GB/s. The zoom from 36-40 to
+  40-45 fps, the apple from about 70 to about 90; frames look as before.
+  What is left in the zoom is the flushes, render passes and dispatches
+  of (frame rate, 2).
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
@@ -355,5 +366,5 @@
   default thread stack is 64 KiB (not 2 MiB) and direct memory 4.5 GiB;
   the HLE follows. A 90 s GPU run with them is clean and still finds its
   save memory in savedata/1.
-- Frame rate: draw arenas copying whole vertex buffers per mesh part,
-  then dispatches breaking render passes; see (frame rate, 2) above.
+- Frame rate: dispatches breaking render passes (about 170 flushes and
+  85 dispatches a frame); see (frame rate, 2) and (frame rate, 3) above.
