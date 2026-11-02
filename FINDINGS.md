@@ -324,6 +324,26 @@
     NVIDIA), and SDL keeps other submissions waiting meanwhile, so the
     GPU thread's work and the GPU's do not overlap. GPU load in the zoom
     is about 38% at 16 fps, about 24 ms of GPU work a frame.
+- 2026-11-01 (frame rate, 2): the geometry-shader draws now stay on the
+  GPU (x86recomp 142ab5a: GPU buffers in gfx::Device, rings and emits
+  kept there, strip indices built by a compute program, drawn indirect).
+  That alone gave about 19 fps in the zoom: each dispatch still created
+  its own transfer buffers, which was most of its cost. Reusing the
+  cycled upload buffer and the shared download one: the zoom (from the
+  JAPAN Studio logo to the apple) at about 31 fps, the apple at about 60,
+  the loading screen at about 300 (was 140). Measured in 1 s windows;
+  frames look as before. With the geometry-shader draws skipped the zoom
+  was at 28 before the transfer-buffer fix, so they are no longer the
+  main cost. What is left in the zoom:
+  - static meshes drawn in many parts copy their whole vertex buffer
+    (0.2-2 MiB, strides 0x18-0x30) for every part, about 1.3 GB/s of
+    draw arena from the host; 40% of it repeats within a flush. Copying
+    only the vertices a part's indices reach needs the resolver to know
+    a buffer is fetched by vertex index alone;
+  - about 170 flushes, 75 render passes and 85 dispatches a frame: every
+    dispatch ends the render pass and submits on its own;
+  - the present still waits for the GPU (above). The GPU is about 37%
+    busy.
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
@@ -335,6 +355,5 @@
   default thread stack is 64 KiB (not 2 MiB) and direct memory 4.5 GiB;
   the HLE follows. A 90 s GPU run with them is clean and still finds its
   save memory in savedata/1.
-- Frame rate: the geometry-shader draws without a host round trip (rings,
-  emits and strip indices kept on the GPU), then the other compute
-  dispatches' read-back; see (frame rate) above.
+- Frame rate: draw arenas copying whole vertex buffers per mesh part,
+  then dispatches breaking render passes; see (frame rate, 2) above.
