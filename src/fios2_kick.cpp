@@ -32,7 +32,7 @@
 #include <cstdint>
 
 #define RECOMP_LIFT_X64 1
-#include "runtime/lifted.h"
+#include "x86/lifted.h"
 
 namespace recomp::gen {
 

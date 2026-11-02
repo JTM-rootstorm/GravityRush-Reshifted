@@ -9,10 +9,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_LINK_DEPENDS_NO_SHARED ON)
 
 # x86recomp: the lifter, the SSE/x87 models, the runtime and its PS4
-# platform module (a sibling checkout).
+# platform module (a sibling checkout), without the Win32 one.
 set(X86RECOMP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../x86recomp"
     CACHE PATH "x86recomp source tree")
 set(RECOMP_PLATFORM_ORBIS ON CACHE BOOL "PS4 (Orbis OS) platform module" FORCE)
+set(RECOMP_PLATFORM_WIN32 OFF CACHE BOOL "Win32 platform module (Windows PC games)" FORCE)
 
 enable_testing()
 add_subdirectory("${X86RECOMP_DIR}" x86recomp)
