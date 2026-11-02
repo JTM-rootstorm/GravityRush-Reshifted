@@ -431,6 +431,32 @@
   whose copies into the heap now wait on shader reads of the whole heap.
   Frames match but for timing; a 120 s run is clean.
 
+- 2026-11-02 (into the game): runs now reach episode 1's city.
+  - Boot options: main() (0x4003D0) passes argc/argv to a parser
+    (0x401C10) after merging app0/args.txt (-region A) in. Among its
+    options: -state NAME (the start state, default "Ready", copied from
+    the next argument without skipping it), -world NAME (state "Game",
+    world NAME; default "Title"; worlds are arc/ xml/NAME.xml), -viewer,
+    -home, -nosound, -30/-60. grr passes arguments after -- to it.
+    -world title -state Ready boots as usual; -world ep01p (with or
+    without -state Ready) and -world ep00_00p draw black at about
+    1000 fps with no script output: episode worlds need what the
+    title's new game sets up (the Lua in lua/game/world/title/).
+  - So runs walk the title instead: x86recomp's TEST_PAD (a file of
+    timed presses for background runs), cross every 2 s from 10 s.
+    That selects New Game, plays the opening movie (several minutes,
+    the credits over the apple; the world loads behind it) and reaches
+    "pc is in cc" in about 9 minutes.
+  - Fixed on the way (x86recomp): a 34-case switch at 0x1145440 whose
+    bounds check was 17 instructions before its jmp, past the lifter's
+    16 (27 more tables recovered, 823 to 850);
+    sceKernelCheckedReleaseDirectMemory (the movie allocator's texture
+    free, 0x659F50); sceAvPlayerClose read its handle after calling the
+    game's deallocators and freed the last texture a second time (the
+    game's deallocator 0x659D00 then faulted at 0x1C looking it up).
+  - Stops at: libSceNgs2 ATRAC9 waveforms (not implemented, fatal), on
+    a guest thread just after "pc is in cc".
+
 ## Next
 - Values the HLE reports that are not measured on the console yet:
   x86recomp platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
@@ -452,3 +478,7 @@
   frame, each a copy pass then a render pass; the GPU writes into the
   heap (dispatches) serialise with its reads. See (frame rate, 2) to
   (frame rate, 7) above.
+- Into the game: NGS2 ATRAC9 voices (the city's sound) are next; a run
+  reaches them with GRR_TEST_PAD pressing cross every 2 s from 10 s, in
+  about 9 minutes (see (into the game) above). A save after the opening
+  would let later runs start from Continue.
