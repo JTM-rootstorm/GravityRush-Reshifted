@@ -507,6 +507,36 @@
     compared without the dispatch results queued there): fixed in
     SwARc 8765250, no visible difference in a run to free play.
 
+- 2026-11-03 (a save from play)
+  - The first autosave is at mission ep01_b: ep01_a (Kat's walk from the
+    start to the old man's door, no jumping or gravity) skips it by name
+    (lua/game/event/autosave.lua). A run now plays ep01_a: SwARc's
+    TEST_PAD holds sticks and reads lines appended during the run, and a
+    driver outside the game steers Kat by her position in memory (the
+    float triple that starts at checkpoint_pc_start, 333.06, -102.15,
+    -55.12; y is up), learning the stick's angle as the camera changes.
+  - The route, from the mission's sensors (lua/game/event/ep01_a.evb:
+    records of rotation, position, scale, box size at +0xB0, and the
+    next record's name at +0xE8): the fountain stairs, then a spiral up
+    the courtyard's walkways, (x, z) = (336, -64), (335, -68), (335, -76),
+    (343.5, -66), (345.5, -60), (345, -53), (344, -49), (340, -46),
+    (335.4, -45.3), (329, -47), (327.7, -52.5), (327.7, -62),
+    (327.7, -70.9), (330.6, -70.8), (336, -72), (339.6, -72), then
+    ojin_entry at (343, -78), y -92. Then ep01_01p and the comic ep01_02c
+    (cross), and ep01_b autosaves: savedata/1/SAVEAUTO (data.bin, 18110
+    bytes), kept under out/saves/ep01b.
+  - Fixed on the way (SwARc): SSE flush-to-zero (the game runs with FTZ;
+    walking reached a tiny result at 0x109A990), and setjmp/longjmp in
+    x64 images: the script engine's protected calls (setjmp at 0x115E5E4,
+    luaD_throw's longjmp at 0x115E4A4) need the manifests' setjmp (the
+    PLT stub) and resume (libc's longjmp ret) lines.
+  - Continue from that save: the title finds it and selects Continue;
+    Savedata:load() opens the system save data dialog in list mode (mode
+    1, display type 2, load: 0x5FBFE0), which SwARc does not implement
+    (libSceSaveDataDialog: Initialize, Open, UpdateStatus, GetResult,
+    IsReadyToDisplay, Close, Terminate). Its other opener (0x5FAE00) is a
+    system message (mode 3, type 8) with a block count.
+
 ## Next
 - Values the HLE reports that are not measured on the console yet:
   SwARc platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
@@ -528,7 +558,11 @@
   frame, each a copy pass then a render pass; the GPU writes into the
   heap (dispatches) serialise with its reads. See (frame rate, 2) to
   (frame rate, 7) above.
-- Into the game: NGS2 ATRAC9 voices (the city's sound) are next; a run
-  reaches them with GRR_TEST_PAD pressing cross every 2 s from 10 s, in
-  about 9 minutes (see (into the game) above). A save after the opening
-  would let later runs start from Continue.
+- Into the game: a run reaches free play with GRR_TEST_PAD pressing
+  cross every 2 s from 10 s, in about 9 minutes (see (into the game)
+  above). A save would let later runs start from Continue, but no run
+  makes one: the first mission (ep01_a) starts the autosave sandbox
+  ("autosave create!!!") and its finalize skips ep01_a by name
+  (lua/game/event/autosave.lua); the first autosave is at the next
+  mission, past episode 1's play: a run now makes one (see (a save from
+  play) above). Continue from it needs libSceSaveDataDialog's list mode.

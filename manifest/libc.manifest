@@ -1,2 +1,7 @@
 # recomp_lift manifest for libc (entry/name/probe/resume/replace/setjmp lines;
 # VAs at the link address)
+
+# setjmp (gNQ1V2vfXDE), for callers inside libc; longjmp's (lKEN2IebgJ0)
+# final ret, to the return address it stores at the restored rsp.
+setjmp 0x2FCB0
+resume 0x2FD6F
