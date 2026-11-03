@@ -502,9 +502,10 @@
   - A run now shows Kat and the cat whole, the cat with its outline,
     about 200 fps in the city.
   - Not causes (tried): kept GPU ranges (a run with none drew the same);
-    landing dispatch results before a kept range is compared. SwARc's
-    Kept() still compares a range it already holds without landing the
-    dispatch results queued there first; it made no difference here.
+    landing dispatch results before a kept range is compared. That
+    landing was missing all the same (a kept range already made was
+    compared without the dispatch results queued there): fixed in
+    SwARc 8765250, no visible difference in a run to free play.
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
