@@ -476,10 +476,18 @@
     unconditionally. The lift has 4 such loops (loads at a fixed
     address, compares, a branch back): 0x411890, 0x411DB0, 0x107C570,
     0x10A0730. Needs the lifter to emit their loads as atomic ones.
+  - Fixed (SwARc 47d71ab): the lifter finds such loops by shape and
+    loads with acquire atomics (RdPoll); the lift changes at exactly
+    those 4 loops.
+  - Runs now get through the dialogue scene into free play in the city
+    (Kat by the fountain, the camera behind her) and keep running: 18
+    minutes, no fatal, about 180 fps there. Kat's own model draws wrong
+    (patchy, wrong colours, pieces missing) while the city around her
+    looks right: the next GPU lead.
 
 ## Next
-- Spin loops (FINDINGS 2026-11-03): the lifter must keep polling loads
-  in loops (atomic loads), then rerun into the first dialogue scene.
+- Kat's model draws wrong in the city (FINDINGS 2026-11-03): find which
+  of its draws' shaders or textures go wrong.
 - Values the HLE reports that are not measured on the console yet:
   SwARc platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
   and plugins/hlevals (a GoldHEN plugin in this game's process) measured
