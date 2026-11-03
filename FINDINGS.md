@@ -485,9 +485,28 @@
     (patchy, wrong colours, pieces missing) while the city around her
     looks right: the next GPU lead.
 
+- 2026-11-03 (characters through the geometry shader)
+  - Kat and the cat (and the other skinned characters) draw through ES,
+    GS and copy shader (VGT_SHADER_STAGES_EN 0xB0): the ES skins (four
+    bones, three float4 rows a bone), the GS emits the triangle and, for
+    draws whose user data asks, outline fins (strips of up to 8
+    vertices). No vertex shader reads bone indices; skinning is not on
+    the CPU.
+  - Kat's draw's ESGS ring read back from the GPU held a clean figure;
+    the damage came after it. Its GSVS V# swizzles with an index stride
+    of 16 and a 128-byte stride (4 components of 8 vertices): the
+    translation's swizzled address multiplied the stride by the element
+    size too, so lanes 16-63 of each GS wave wrote over the next waves'
+    vertices. Fixed in SwARc 1f16d4c (after a376ad9: compute lanes for
+    ADD_TID_ENABLE, which its test needs).
+  - A run now shows Kat and the cat whole, the cat with its outline,
+    about 200 fps in the city.
+  - Not causes (tried): kept GPU ranges (a run with none drew the same);
+    landing dispatch results before a kept range is compared. SwARc's
+    Kept() still compares a range it already holds without landing the
+    dispatch results queued there first; it made no difference here.
+
 ## Next
-- Kat's model draws wrong in the city (FINDINGS 2026-11-03): find which
-  of its draws' shaders or textures go wrong.
 - Values the HLE reports that are not measured on the console yet:
   SwARc platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
   and plugins/hlevals (a GoldHEN plugin in this game's process) measured
