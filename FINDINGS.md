@@ -531,11 +531,22 @@
     luaD_throw's longjmp at 0x115E4A4) need the manifests' setjmp (the
     PLT stub) and resume (libc's longjmp ret) lines.
   - Continue from that save: the title finds it and selects Continue;
-    Savedata:load() opens the system save data dialog in list mode (mode
-    1, display type 2, load: 0x5FBFE0), which SwARc does not implement
-    (libSceSaveDataDialog: Initialize, Open, UpdateStatus, GetResult,
-    IsReadyToDisplay, Close, Terminate). Its other opener (0x5FAE00) is a
-    system message (mode 3, type 8) with a block count.
+    Savedata:load() opens the system save data dialog as a list for
+    loading (mode 1, type 2; Open from 0x5FC3D5, after a
+    sceSaveDataDirNameSearch), polls UpdateStatus and takes the pick
+    (GetResult from 0x5FB8E9), then opens the progress message (mode 3,
+    system message 5; Open from 0x5FB638, IsReadyToDisplay), which the
+    load thread closes once it has mounted and read the save (Close from
+    0x4041FA); then Terminate. The other opener (0x5FAE00) is a system
+    message (mode 3, type 8) with a block count, not reached yet.
+  - 2026-11-03: SwARc's libSceSaveDataDialog (the list and the progress
+    message, drawn by the runtime over the frames) does all that: Continue
+    loads the ep01_b autosave into the "cc" area at (340.31, -92.07,
+    -82.99), the autosave's position, and backing out of the list
+    (circle) returns to the title menu. grr links
+    recomp_orbis_savedata_dialog. A scripted run: cross until the title
+    has logged "TITLE: savedata check" four times, one more cross (the
+    list opens), then cross again to pick.
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
@@ -565,4 +576,4 @@
   ("autosave create!!!") and its finalize skips ep01_a by name
   (lua/game/event/autosave.lua); the first autosave is at the next
   mission, past episode 1's play: a run now makes one (see (a save from
-  play) above). Continue from it needs libSceSaveDataDialog's list mode.
+  play) above), and Continue loads it (2026-11-03).
