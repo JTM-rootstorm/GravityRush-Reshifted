@@ -457,7 +457,29 @@
   - Stops at: libSceNgs2 ATRAC9 waveforms (not implemented, fatal), on
     a guest thread just after "pc is in cc".
 
+- 2026-11-03 (past ATRAC9)
+  - SwARc's NGS2 now decodes ATRAC9 (ffmpeg); the city's voices open
+    the decoder and decode without errors (no audio check by ear yet:
+    runs use SDL's dummy or disk driver).
+  - Next stop was a GLSL compile error: a compare sample through a
+    sampler whose compare function is NEVER (fixed in SwARc: reads 0).
+  - Stops at: a write to guest 0 in 0x107C1D0 when the first dialogue
+    scene starts ("@ KaiwaDemo sandbox OnSandboxStart()", "cleartrophy
+    = 0"), on a job worker (0x8A80B0). Its marker record (TLS, offset
+    at 0x21771E0) is all zeros for workers with no marker buffer
+    ([obj+0x33C] = 0, so 0x8BB700 never allocates one), and the code
+    skips the marker when cursor (+8) >= end (+0x18). The lifted code
+    lost that branch: its jnb target 0x107C570 is a spin on a byte
+    (mov al, [r12+0x30]; cmp al, 2; jnz) entered only when the byte was
+    not 2 (checked at 0x107C526), so clang, assuming loops of plain
+    loads terminate, dropped the path into it and stores the marker
+    unconditionally. The lift has 4 such loops (loads at a fixed
+    address, compares, a branch back): 0x411890, 0x411DB0, 0x107C570,
+    0x10A0730. Needs the lifter to emit their loads as atomic ones.
+
 ## Next
+- Spin loops (FINDINGS 2026-11-03): the lifter must keep polling loads
+  in loops (atomic loads), then rerun into the first dialogue scene.
 - Values the HLE reports that are not measured on the console yet:
   SwARc platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
   and plugins/hlevals (a GoldHEN plugin in this game's process) measured
