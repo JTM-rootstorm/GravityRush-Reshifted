@@ -32,8 +32,9 @@ specific to this game. It is the first PS4 user of SwARc
   (none needed now) or the binaries, then re-run cmake
   (the generated file list is globbed):
   `tools/lift.sh "$HOME/Documents/Programming/Recomp/PS4-HB/dumps/games/CUSA01130/mnt/sandbox/pfsmnt/CUSA01130-app0"`
-  It lifts the eboot and the PRXs it loads at start, at the bases SwARc's
-  PS4 platform maps them at (`out/build/release/bin/orbis_app modules
+  It lifts the eboot and every PRX in sce_module (those it starts with
+  and those it could load itself), at the bases SwARc's PS4 platform
+  maps them at (`out/build/release/bin/orbis_app modules
   <app0>` lists them; `orbis_app imports <app0>` shows the imports the
   HLE does not handle yet). generated/lift_report.txt lists
   unimplemented instructions and warnings.

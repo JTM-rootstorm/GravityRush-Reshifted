@@ -1,5 +1,5 @@
 #!/bin/sh
-# Lifts the eboot and the PRXs it starts with into generated/, through
+# Lifts the eboot and the PRXs it ships into generated/, through
 # SwARc's platforms/orbis/tools/lift.sh (the modules and their bases are
 # the platform's, as grr maps them). Run from the project directory.
 #

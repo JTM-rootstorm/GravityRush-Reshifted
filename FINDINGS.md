@@ -9,8 +9,11 @@
   tables recovered. PT_TLS 0x140 bytes. 681 imports from 42 modules.
 - Bundled PRXs in sce_module/: libc and libSceFios2 are needed at start
   (libc needs Fios2); libSceFace, libSceHand, libSceHeadTracker,
-  libSceS3DConversion and libSceSmart (camera/VR/3D) are not, and are
-  not lifted yet. libc and Fios2 use general-dynamic TLS (DTPMOD64).
+  libSceS3DConversion and libSceSmart (camera/VR/3D) are not, and the
+  game never loads them (no sceKernelLoadStartModule import). Since
+  2026-11-04 SwARc's lift script lifts them too, from 0x820000000 up:
+  4,258 more functions, 322K instructions, 29 more files. libc and
+  Fios2 use general-dynamic TLS (DTPMOD64).
 - The process param sets only the libc parameters (no process name,
   main thread name, priority or stack size).
 
