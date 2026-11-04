@@ -554,6 +554,14 @@
     recomp_orbis_savedata_dialog. A scripted run: cross until the title
     has logged "TITLE: savedata check" four times, one more cross (the
     list opens), then cross again to pick.
+- 2026-11-04: texture levels. The game samples an R32F chain
+  (0x14A2C0000, 1920x1080 in a pitch of 2048, tile mode 14, POW2_PAD)
+  through one T# of levels 0-3, the levels rendered as targets of their
+  own where the layout puts them (level 1, 1024x1024, at +16 MiB: level
+  0 padded to 2048x2048). SwARc now composes such a T# from the targets
+  (before, it sampled level 0 alone); textures from memory now upload
+  every level. Continue reaches play with no GPU fatal and no visible
+  change but the levels.
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
