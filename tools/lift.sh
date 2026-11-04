@@ -1,18 +1,16 @@
 #!/bin/sh
-# Lifts the eboot and the PRXs it loads at start into generated/, at the
-# bases src/main.cpp maps them at. Run from the project directory.
+# Lifts the eboot and the PRXs it starts with into generated/, through
+# SwARc's platforms/orbis/tools/lift.sh (the modules and their bases are
+# the platform's, as grr maps them). Run from the project directory.
 #
-# usage: tools/lift.sh APP0_DIR [RECOMP_LIFT]
+# usage: tools/lift.sh APP0_DIR [BUILD_DIR]
 set -e
 G=$1
-L=${2:-out/build/release/swarc/tools/lifter_x86/recomp_lift}
+B=${2:-out/build/release}
 if [ -z "$G" ]; then
-  echo "usage: tools/lift.sh APP0_DIR [RECOMP_LIFT]" >&2
+  echo "usage: tools/lift.sh APP0_DIR [BUILD_DIR]" >&2
   exit 2
 fi
-"$L" --exe "$G/eboot.bin" --symbols "" --manifest manifest/eboot.manifest \
-  --module "$G/sce_module/libSceFios2.prx" --symbols "" \
-  --manifest manifest/libSceFios2.manifest --base 800000000 \
-  --module "$G/sce_module/libc.prx" --symbols "" --manifest manifest/libc.manifest \
-  --base 810000000 \
-  --out generated
+S=$(sed -n 's/^SWARC_DIR:PATH=//p' "$B/CMakeCache.txt")
+exec sh "$S/platforms/orbis/tools/lift.sh" "$B/swarc/tools/lifter_x86/recomp_lift" \
+  "$B/bin/orbis_app" "$G" manifest generated

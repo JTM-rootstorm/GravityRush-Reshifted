@@ -26,11 +26,6 @@ if(TARGET grr_lifted)
   # Replacements of lifted functions (`replace` in manifest/).
   target_sources(grr_lifted PRIVATE src/fios2_kick.cpp)
   add_executable(grr src/main.cpp)
-  target_link_libraries(grr PRIVATE grr_lifted recomp_orbis recomp_orbis_kernel
-                        recomp_orbis_libc_internal recomp_orbis_system recomp_orbis_fiber
-                        recomp_orbis_audio recomp_orbis_ngs2 recomp_orbis_avplayer
-                        recomp_orbis_font recomp_orbis_net recomp_orbis_np recomp_orbis_pad
-                        recomp_orbis_savedata recomp_orbis_videoout recomp_orbis_gnm
-                        recomp_orbis_savedata_dialog)
+  target_link_libraries(grr PRIVATE grr_lifted recomp_orbis_hle)
   recomp_bundle(grr)
 endif()

@@ -31,10 +31,15 @@ specific to this game. It is the first PS4 user of SwARc
   library's tools/lifter_x86, manifest/ or the binaries, then re-run cmake
   (the generated file list is globbed):
   `tools/lift.sh "$HOME/Documents/Programming/Recomp/PS4-HB/dumps/games/CUSA01130/mnt/sandbox/pfsmnt/CUSA01130-app0"`
-  It lifts the eboot and the PRXs it loads at start; their bases there
-  and in src/main.cpp must agree. generated/lift_report.txt lists
+  It lifts the eboot and the PRXs it loads at start, at the bases SwARc's
+  PS4 platform maps them at (`out/build/release/bin/orbis_app modules
+  <app0>` lists them; `orbis_app imports <app0>` shows the imports the
+  HLE does not handle yet). generated/lift_report.txt lists
   unimplemented instructions and warnings.
-- Run: `out/build/release/bin/grr --game-dir <app0>`. GRR_TRACE=1 logs
+  It needs a build first (it runs orbis_app).
+- Run: `out/build/release/bin/grr --game-dir <app0>`; the dump's
+  param.sfo is not in app0, so add `--param-sfo
+  <dump>/system_data/priv/appmeta/CUSA01130/param.sfo`. GRR_TRACE=1 logs
   every HLE call; GRR_NID_NAMES=<names file> names unimplemented imports
   by name instead of NID; GRR_BACKGROUND=1 for automated runs, which go
   inside a memory cap:
