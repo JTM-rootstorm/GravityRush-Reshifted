@@ -1,7 +1,0 @@
-# recomp_lift manifest for libSceFios2 (entry/name/probe/resume/replace/setjmp lines;
-# VAs at the link address)
-
-# The scheduler kicks, counted also for an empty queue (src/fios2_kick.cpp).
-replace 2A150
-replace 2A1D0
-replace 2A240

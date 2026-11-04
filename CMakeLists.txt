@@ -23,8 +23,6 @@ add_subdirectory("${SWARC_DIR}" swarc)
 # runtime and the PS4 HLE beside them in bin/ (recomp_bundle).
 recomp_add_lifted(grr_lifted "${CMAKE_CURRENT_SOURCE_DIR}/generated" LINK recomp_orbis)
 if(TARGET grr_lifted)
-  # Replacements of lifted functions (`replace` in manifest/).
-  target_sources(grr_lifted PRIVATE src/fios2_kick.cpp)
   add_executable(grr src/main.cpp)
   target_link_libraries(grr PRIVATE grr_lifted recomp_orbis_hle)
   recomp_bundle(grr)

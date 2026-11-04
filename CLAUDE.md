@@ -28,7 +28,8 @@ specific to this game. It is the first PS4 user of SwARc
 - `cmake --preset release -DSWARC_DIR=$HOME/Documents/Programming/Recomp/SwARc-ps4 && cmake --build --preset release`
   (the PS4 platform module is turned on by this project's CMakeLists).
 - Lifting is a separate step; re-run it after any change to the
-  library's tools/lifter_x86, manifest/ or the binaries, then re-run cmake
+  library's tools/lifter_x86 or platforms/orbis/lifter, a manifest/<module>.manifest
+  (none needed now) or the binaries, then re-run cmake
   (the generated file list is globbed):
   `tools/lift.sh "$HOME/Documents/Programming/Recomp/PS4-HB/dumps/games/CUSA01130/mnt/sandbox/pfsmnt/CUSA01130-app0"`
   It lifts the eboot and the PRXs it loads at start, at the bases SwARc's

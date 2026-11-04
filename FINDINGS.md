@@ -144,8 +144,10 @@
     corruption), and a fiber still switching away was refused as
     running, which made the worker drop it (seen in passing runs).
   - The remaining stop was a race in libSceFios2 itself, fixed by
-    src/fios2_kick.cpp (replacements of its three scheduler kicks, whose
-    comment has the mechanism). A kick (an I/O completion, a psarc
+    replacements of its three scheduler kicks, whose comment has the
+    mechanism (src/fios2_kick.cpp here at first; since 2026-11-04 in
+    SwARc, platforms/orbis/src/orbis/fios2.cpp, for this build's
+    SHA-256). A kick (an I/O completion, a psarc
     buffer release, a resume) does nothing to a scheduler with an empty
     queue, and the queue is empty while its only chunk is executed with
     the scheduler's mutex dropped. A chunk that answered busy there
@@ -528,8 +530,10 @@
   - Fixed on the way (SwARc): SSE flush-to-zero (the game runs with FTZ;
     walking reached a tiny result at 0x109A990), and setjmp/longjmp in
     x64 images: the script engine's protected calls (setjmp at 0x115E5E4,
-    luaD_throw's longjmp at 0x115E4A4) need the manifests' setjmp (the
-    PLT stub) and resume (libc's longjmp ret) lines.
+    luaD_throw's longjmp at 0x115E4A4) need setjmp's PLT stub marked as
+    setjmp and libc's longjmp ret as a resume site (manifest lines at
+    first; since 2026-11-04 the platform's lifter reader marks them by
+    NID).
   - Continue from that save: the title finds it and selects Continue;
     Savedata:load() opens the system save data dialog as a list for
     loading (mode 1, type 2; Open from 0x5FC3D5, after a

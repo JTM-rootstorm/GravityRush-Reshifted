@@ -1,6 +1,0 @@
-# recomp_lift manifest for eboot (entry/name/probe/resume/replace/setjmp lines;
-# VAs at the link address)
-
-# The PLT stub (at 0x13BFB20) of libc's setjmp (NID gNQ1V2vfXDE): its callers (the
-# script engine's protected calls) are resumed by longjmp.
-setjmp 0xFBFB20
