@@ -588,6 +588,24 @@
     block), EOP timestamps (real clocks). Next: the consumer of the
     batches (who reads the batch's mask at +0x78 and records the shadow
     view), traced from the attract scene, where it runs.
+- 2026-11-05 (city shadows: the scene turns them off)
+  - The cascade pass (0x674B30, from 0x428DE0) runs only when the frame's
+    scene parameters have DirLight/Enable set (render context +768,
+    copied by 0x66A710 from the scene's parameters, +956 + 57). In the
+    city it is 0, so the pass and every caster batch (drawn only while
+    0x19E83C8, the cascade bit, matches the batch mask at +0x78) are
+    skipped; in the title (xml/Title.xml) it is 1.
+  - The parameters come from the area region tree (0x7D6620 ->
+    0x7D5FB0, oriented boxes, deepest match wins, priority 1 via
+    0x67AB50). After Continue from ep01_b the player stands at about
+    (337.9, -90.2, -83.0), inside a priority-2 box of
+    area_post_cc_02.xml that uses area_post_cc_demo_a.xml, which (with
+    demo_b and cc_hyo_01) sets DirLight/Enable 0; the other cc files set
+    it 1. The box test recomputed from the dumped nodes agrees with the
+    game's pick, so this looks like the game's own lighting for that
+    spot, not a platform fault. To confirm on the console: shadows at
+    the Continue spot of this save, and whether they return a few steps
+    out of that box.
 
 ## Next
 - Values the HLE reports that are not measured on the console yet:
