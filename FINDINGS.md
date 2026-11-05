@@ -563,6 +563,32 @@
   every level. Continue reaches play with no GPU fatal and no visible
   change but the levels.
 
+- 2026-11-04 (a load fault; city shadows)
+  - Intermittent fatal while Continue loads ep01_b (2 of about 9 runs,
+    both in builds slowed by logging or gdb): "guest memory fault" in
+    libc's memcpy (0x8100302B0) from 0x411260, copying a GNF texture
+    ("GNF ", 0x41BD20) into the game's GPU heap (sub_415420/0x65E5B0 over
+    the 3 GiB mapping, 0x140A30000-0x200A30000 in these runs). The page
+    was mapped; the renderer had a write watch on it (an old texture's
+    memory), and another thread disarmed it between the fault and its
+    handling, so the handler found no watch. Fixed in SwARc 182723c
+    (watch::Reopened, with a test that failed every run before).
+  - Shadows: the city draws none. A frame in the "cc" area has no draw
+    into the cascades (0x145990000, nor any other shadow-shaped target,
+    zero-count draws included); the attract scene draws about 950 there a
+    window, so the cascade path works. Game side, per frame in the city:
+    the shadow setup runs (0x426AD0 -> 0x427AD0 -> 0x43CAD0, Method 2 =
+    cascades, the debug menu's Shadow/Method at 0x19E82CC) and the shadow
+    view collects casters (0x66A710 -> 0x66CAC0 -> 0x6696C0 -> 0x461E90:
+    materials with flag 0x10, kind 47, cascade mask 1 at view+0x1B4,
+    batched as instances by 0x1258A30); the pass that would draw those
+    batches is never recorded. Not the cause: the depth-reduction chain
+    (0x14A2C0000...) read on the CPU (filling it changed nothing), the
+    scene file (area_post_cc.xml has DirLight on and the title's Shadow
+    block), EOP timestamps (real clocks). Next: the consumer of the
+    batches (who reads the batch's mask at +0x78 and records the shadow
+    view), traced from the attract scene, where it runs.
+
 ## Next
 - Values the HLE reports that are not measured on the console yet:
   SwARc platforms/orbis/docs/hle.md. PS4-HB payloads/hlevals
