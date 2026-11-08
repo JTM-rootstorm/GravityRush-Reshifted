@@ -13,8 +13,8 @@ specific to this game. It is the first PS4 user of SwARc
   other PS4 games too); GitHub: JTM-rootstorm/GravityRush-Reshifted
 - Library: ~/Documents/Programming/Recomp/SwARc (add_subdirectory;
   SWARC_DIR overrides the path). Library changes are made in a
-  worktree (../../SwARc-<topic>; the PS4 work is in
-  ../../SwARc-ps4) and committed there; its rules apply.
+  topic worktree (../../SwARc-<topic>, cut from main) and landed with
+  its tools/land.py; its rules apply.
 - Game: the decrypted app0 dumped from the user's own console (NEVER
   commit or copy into the repo):
   ~/Documents/Programming/Recomp/PS4-HB/dumps/games/CUSA01130/mnt/sandbox/pfsmnt/CUSA01130-app0/
@@ -25,7 +25,7 @@ specific to this game. It is the first PS4 user of SwARc
   library.
 
 ## Build
-- `cmake --preset release -DSWARC_DIR=$HOME/Documents/Programming/Recomp/SwARc-ps4 && cmake --build --preset release`
+- `cmake --preset release && cmake --build --preset release`
   (the PS4 platform module is turned on by this project's CMakeLists).
 - Lifting is a separate step; re-run it after any change to the
   library's tools/lifter_x86 or platforms/orbis/lifter, a manifest/<module>.manifest
